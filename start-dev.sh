@@ -1,14 +1,17 @@
 #!/bin/sh
 
-# Use PORT environment variable from Render, fallback to 5173
-export VITE_PORT=${PORT:-5173}
+# Use different ports to avoid conflicts
+BACKEND_PORT=3000
+FRONTEND_PORT=${PORT:-5173}
 
-# Start backend in background
-cd /app/backend && npm run dev &
+# Clear PORT for backend, use BACKEND_PORT instead
+unset PORT
+cd /app/backend && PORT=$BACKEND_PORT npm run dev &
 BACKEND_PID=$!
 
-# Start frontend with dynamic port
-cd /app/frontend && npm run dev -- --port $VITE_PORT --host 0.0.0.0 &
+# Set PORT back for frontend
+export PORT=$FRONTEND_PORT
+cd /app/frontend && npm run dev -- --port $FRONTEND_PORT --host 0.0.0.0 &
 FRONTEND_PID=$!
 
 # Wait for both processes

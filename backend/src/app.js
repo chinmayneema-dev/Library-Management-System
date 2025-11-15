@@ -12,7 +12,17 @@ const userRoutes = require('./routes/userRoutes');
 const app = express();
 
 app.use(helmet());
-app.use(cors());
+
+// CORS configuration
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || process.env.NODE_ENV === 'development' 
+    ? ['http://localhost:5173', 'http://localhost:3000'] 
+    : true,
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
