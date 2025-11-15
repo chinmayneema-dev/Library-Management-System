@@ -7,6 +7,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
+  InputAdornment,
   Stack,
   Table,
   TableBody,
@@ -16,7 +18,7 @@ import {
   TableRow,
   TextField,
 } from '@mui/material';
-import { Add, Refresh } from '@mui/icons-material';
+import { Add, Refresh, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { addMember, listMembers } from '../../api/members';
@@ -36,6 +38,7 @@ const MembersPage = () => {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formState, setFormState] = useState(initialFormState);
+  const [showPassword, setShowPassword] = useState(false);
 
   const membersQuery = useQuery({
     queryKey: ['members', { page: 1, pageSize: 100 }],
@@ -182,11 +185,23 @@ const MembersPage = () => {
             <TextField
               label="Temporary Password (optional)"
               name="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={formState.password}
               onChange={handleChange}
               helperText="Leave blank if not creating login yet"
               fullWidth
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
           </Stack>
         </DialogContent>

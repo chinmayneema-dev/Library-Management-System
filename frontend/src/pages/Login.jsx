@@ -4,11 +4,14 @@ import {
   Box,
   Button,
   Container,
+  IconButton,
+  InputAdornment,
   Paper,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { login as loginApi } from '../api/auth';
@@ -18,6 +21,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated, user } = useAuth();
   const [formState, setFormState] = useState({ username: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
 
   const { mutateAsync, isLoading, error } = useMutation({
     mutationFn: loginApi,
@@ -95,12 +99,24 @@ const Login = () => {
           <TextField
             label="Password"
             name="password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
             value={formState.password}
             onChange={handleChange}
             required
             fullWidth
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <Button type="submit" disabled={isLoading} fullWidth sx={{ py: 1.4 }}>
             {isLoading ? 'Signing in...' : 'Sign In'}

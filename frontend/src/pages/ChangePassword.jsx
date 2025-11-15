@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Alert, Button, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Button, IconButton, InputAdornment, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useMutation } from '@tanstack/react-query';
 import { changePassword } from '../api/users';
 import PageHeader from '../components/PageHeader.jsx';
@@ -9,6 +10,11 @@ const ChangePassword = () => {
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
   });
 
   const [localError, setLocalError] = useState('');
@@ -69,29 +75,65 @@ const ChangePassword = () => {
           <TextField
             name="currentPassword"
             label="Current Password"
-            type="password"
+            type={showPasswords.current ? 'text' : 'password'}
             value={form.currentPassword}
             onChange={handleChange}
             required
             fullWidth
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))}
+                    edge="end"
+                  >
+                    {showPasswords.current ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <TextField
             name="newPassword"
             label="New Password"
-            type="password"
+            type={showPasswords.new ? 'text' : 'password'}
             value={form.newPassword}
             onChange={handleChange}
             required
             fullWidth
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
+                    edge="end"
+                  >
+                    {showPasswords.new ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <TextField
             name="confirmPassword"
             label="Confirm New Password"
-            type="password"
+            type={showPasswords.confirm ? 'text' : 'password'}
             value={form.confirmPassword}
             onChange={handleChange}
             required
             fullWidth
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
+                    edge="end"
+                  >
+                    {showPasswords.confirm ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <Button type="submit" disabled={mutation.isLoading}>
             {mutation.isLoading ? 'Saving...' : 'Save Changes'}

@@ -14,6 +14,11 @@ const addBook = async (req, res) => {
     });
     return res.status(201).json(book);
   } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      if (error.errors?.find(e => e.path === 'isbn')) {
+        return res.status(400).json({ message: 'ISBN already exists. Please use a different ISBN.' });
+      }
+    }
     return res.status(500).json({ message: 'Failed to add book', error: error.message });
   }
 };
@@ -37,6 +42,11 @@ const updateBook = async (req, res) => {
 
     return res.status(200).json(updatedBook);
   } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      if (error.errors?.find(e => e.path === 'isbn')) {
+        return res.status(400).json({ message: 'ISBN already exists. Please use a different ISBN.' });
+      }
+    }
     return res.status(500).json({ message: 'Failed to update book', error: error.message });
   }
 };

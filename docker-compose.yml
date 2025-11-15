@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=shinkansen.proxy.rlwy.net
+      - DB_PORT=20874
+      - DB_NAME=railway
+      - DB_USER=root
+      - DB_PASSWORD=ygMhIdauRxxVkHpjOnhYmTNynFWJaUnp
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin123
+    volumes:
+      - ./backend/.env:/app/backend/.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # For local development with hot reload
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=shinkansen.proxy.rlwy.net
+      - DB_PORT=20874
+      - DB_NAME=railway
+      - DB_USER=root
+      - DB_PASSWORD=ygMhIdauRxxVkHpjOnhYmTNynFWJaUnp
+      - JWT_SECRET=dev-jwt-secret
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin123
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
+      - /app/backend/node_modules
+      - /app/frontend/node_modules
+    profiles:
+      - dev
+    restart: unless-stopped
