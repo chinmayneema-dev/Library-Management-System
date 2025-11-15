@@ -1,5 +1,5 @@
 # Multi-stage build for full-stack application
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -9,44 +9,42 @@ COPY backend/package.json ./backend/
 COPY frontend/package.json ./frontend/
 
 # Install dependencies
-RUN cd backend && npm ci --only=production
-RUN cd frontend && npm ci
+RUN cd backend && npm install
+RUN cd frontend && npm install
 
-# Build frontend
-WORKDIR /app/frontend
-COPY frontend/ ./
-RUN npm run build
+# Copy source code for development
+COPY backend/ ./backend/
+COPY frontend/ ./frontend/
 
 # Production stage
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
 
-# Create app user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+# Skip user creation - running as root for simplicity
 
 # Set working directory
 WORKDIR /app
 
-# Copy backend dependencies and source
+# Copy dependencies and source code
 COPY --from=builder /app/backend/node_modules ./backend/node_modules
-COPY backend/ ./backend/
+COPY --from=builder /app/backend ./backend/
+COPY --from=builder /app/frontend/node_modules ./frontend/node_modules
+COPY --from=builder /app/frontend ./frontend/
 
-# Copy built frontend
-COPY --from=builder /app/frontend/dist ./frontend/dist/
+# Copy startup script
+COPY start-dev.sh ./
+RUN chmod +x start-dev.sh
 
-# Change to app user
-USER nodejs
+# Expose port for frontend dev server (Render will set PORT env var)
+EXPOSE 5173
+ENV PORT=5173
 
-# Expose port
-EXPOSE 3000
-
-# Health check
+# Health check for frontend dev server
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
+  CMD node -e "require('http').get('http://localhost:5173', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
 
-# Start the application
+# Start both backend and frontend dev servers
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "backend/src/server.js"]
+CMD ["./start-dev.sh"]
